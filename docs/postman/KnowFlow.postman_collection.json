@@ -1,0 +1,676 @@
+{
+  "info": {
+    "name": "KnowFlow - Fluxo do Conhecimento",
+    "description": "API REST do KnowFlow (TCC ADS UCSAL). Antes de rodar: suba a aplicação (http://localhost:8080). A pasta 0 cria os dados de teste; as pastas 1 e 2 executam os casos de teste do TCC com verificações automáticas. O script da coleção busca o token CSRF sozinho antes de cada requisição que altera dados.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": ["// Protecao CSRF (SecurityConfig): toda requisicao que altera dados precisa do cabecalho X-XSRF-TOKEN.", "if (pm.request.method !== 'GET') {", "    pm.sendRequest(pm.collectionVariables.get('baseUrl') + '/api/auth/csrf', function (erro, resposta) {", "        if (!erro) {", "            pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: resposta.json().token });", "        }", "    });", "}"]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "emailAdmin", "value": "admin@knowflow.com" },
+    { "key": "senhaAdmin", "value": "Admin1234" },
+    { "key": "senhaTeste", "value": "Senha2026" },
+    { "key": "idDepartamento", "value": "" },
+    { "key": "idCategoria", "value": "" },
+    { "key": "emailColaborador", "value": "" },
+    { "key": "emailGestor", "value": "" },
+    { "key": "idProblema", "value": "" },
+    { "key": "idCausa", "value": "" },
+    { "key": "idSolucao", "value": "" },
+    { "key": "idComentario", "value": "" },
+    { "key": "idAnexo", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0 - Preparação (administrador)",
+      "description": "Cria um departamento, uma categoria, um colaborador e um gestor só para estes testes. Rode a coleção inteira em ordem (Run collection) ou cada requisição de cima para baixo.",
+      "item": [
+        {
+          "name": "Login do administrador",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200 - login aceito', () => pm.response.to.have.status(200));", "pm.test('perfil ADMINISTRADOR', () => pm.expect(pm.response.json().perfil).to.eql('ADMINISTRADOR'));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailAdmin}}\",\n  \"senha\": \"{{senhaAdmin}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "RF01. O cookie de sessão fica guardado no Postman e vale para as próximas requisições."
+          }
+        },
+        {
+          "name": "Criar departamento",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - criado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idDepartamento', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Suporte Postman {{$timestamp}}\",\n  \"descricao\": \"Criado pela coleção do Postman\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/departamentos",
+            "description": "RF03."
+          }
+        },
+        {
+          "name": "Criar colaborador",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - criado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('emailColaborador', pm.response.json().email);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Colaborador Postman\",\n  \"email\": \"colab{{$timestamp}}@postman.com\",\n  \"perfil\": \"COLABORADOR\",\n  \"departamentoId\": {{idDepartamento}},\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/usuarios",
+            "description": "RF02, RN02, RN03, RNF09."
+          }
+        },
+        {
+          "name": "Criar gestor",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - criado', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('emailGestor', pm.response.json().email);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Gestor Postman\",\n  \"email\": \"gestor{{$timestamp}}@postman.com\",\n  \"perfil\": \"GESTOR\",\n  \"departamentoId\": {{idDepartamento}},\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/usuarios",
+            "description": "RF02."
+          }
+        },
+        {
+          "name": "Login do gestor (para criar a categoria)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200 - login aceito', () => pm.response.to.have.status(200));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailGestor}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Categorias são organizadas pelo gestor."
+          }
+        },
+        {
+          "name": "Criar categoria",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - criada', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idCategoria', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Postman {{$timestamp}}\",\n  \"idPai\": null\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/categorias",
+            "description": "RF07 (árvore de categorias)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 - Casos de teste do TCC (Quadro 8)",
+      "description": "CT01 a CT09 da seção 5.2. Cada requisição tem testes automáticos (aba Tests / Test Results).",
+      "item": [
+        {
+          "name": "CT02 - Login com senha incorreta",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('401 - acesso negado', () => pm.response.to.have.status(401));", "pm.test('mensagem clara', () => pm.expect(pm.response.json().mensagem).to.include('E-mail ou senha incorretos'));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailColaborador}}\",\n  \"senha\": \"senhaErrada1\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "RF01. Esperado: mensagem de erro e acesso negado."
+          }
+        },
+        {
+          "name": "CT01 - Login com dados válidos",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200 - acesso liberado', () => pm.response.to.have.status(200));", "pm.test('perfil COLABORADOR', () => pm.expect(pm.response.json().perfil).to.eql('COLABORADOR'));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailColaborador}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "RF01. Esperado: acesso liberado."
+          }
+        },
+        {
+          "name": "CT03 - Registrar problema",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - problema salvo', () => pm.response.to.have.status(201));", "pm.test('situação ABERTO', () => pm.expect(pm.response.json().status).to.eql('ABERTO'));", "pm.collectionVariables.set('idProblema', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Impressora do Postman não imprime\",\n  \"descricao\": \"Os documentos ficam parados na fila de impressão.\",\n  \"departamentoId\": {{idDepartamento}},\n  \"categoriaId\": {{idCategoria}},\n  \"palavrasChave\": [\"impressora\", \"fila de impressão\"]\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas",
+            "description": "RF04, RF07, RN04. Esperado: problema salvo."
+          }
+        },
+        {
+          "name": "CT03 - O problema aparece na lista",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('problema na lista', () => pm.expect(pm.response.json().map(p => p.id)).to.include(Number(pm.collectionVariables.get('idProblema'))));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/busca?ordem=recentes",
+            "description": "RF08. Esperado: o problema salvo aparece na busca."
+          }
+        },
+        {
+          "name": "CT04 - Registrar problema sem título",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('400 - dados inválidos', () => pm.response.to.have.status(400));", "pm.test('campo titulo destacado', () => pm.expect(pm.response.json().campos.titulo).to.eql('Informe o título do problema.'));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"\",\n  \"descricao\": \"Sem título\",\n  \"departamentoId\": {{idDepartamento}},\n  \"categoriaId\": {{idCategoria}}\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas",
+            "description": "RN04. Esperado: mensagem informando campo obrigatório."
+          }
+        },
+        {
+          "name": "CT05 - Associar causa",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - causa vinculada', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idCausa', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Um documento corrompido trava a fila de impressão.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/causas",
+            "description": "RF05, RN05."
+          }
+        },
+        {
+          "name": "CT05 - Registrar solução",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201 - solução vinculada', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idSolucao', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Reiniciar o serviço Spooler de impressão e excluir o documento travado.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/solucoes",
+            "description": "RF06, RN05."
+          }
+        },
+        {
+          "name": "CT06 - Buscar por palavra-chave",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('encontra o problema', () => pm.expect(pm.response.json().map(p => p.id)).to.include(Number(pm.collectionVariables.get('idProblema'))));", "pm.test('tem percentual de semelhança', () => pm.expect(pm.response.json()[0].semelhanca).to.be.a('number'));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/busca?texto=impressora",
+            "description": "RF08 (busca com a tabela hash - IndiceBuscaHash)."
+          }
+        },
+        {
+          "name": "CT07 - Sugerir problemas semelhantes",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('sugere o problema parecido', () => pm.expect(pm.response.json().map(p => p.id)).to.include(Number(pm.collectionVariables.get('idProblema'))));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/busca/semelhantes?texto=a impressora não imprime, documento parado na fila",
+            "description": "RF09. É a mesma consulta que a tela de cadastro faz enquanto a pessoa digita."
+          }
+        },
+        {
+          "name": "CT09 - Colaborador tenta acessar a administração",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('403 - acesso negado', () => pm.response.to.have.status(403));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios",
+            "description": "RF12. Esperado: acesso negado."
+          }
+        },
+        {
+          "name": "Login do gestor",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailGestor}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Prepara o CT08."
+          }
+        },
+        {
+          "name": "CT08 - Gestor valida a solução",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('solução validada', () => pm.expect(pm.response.json().validada).to.eql(true));"] } } ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/validar",
+            "description": "RF10, RN07, RN08 (o problema passa para RESOLVIDO) e RF21 (o autor é notificado)."
+          }
+        },
+        {
+          "name": "CT08 - O problema ficou resolvido (RN08)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('situação RESOLVIDO', () => pm.expect(pm.response.json().status).to.eql('RESOLVIDO'));", "pm.test('histórico registrado (RN10)', () => pm.expect(pm.response.json().historico.length).to.be.above(2));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}",
+            "description": "RF20 - detalhes com causas, soluções e histórico."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Requisitos desejáveis",
+      "description": "RF14, RF16, RF17, RF18, RF21, RF22 e RF24. Continua logado como gestor.",
+      "item": [
+        {
+          "name": "RF17 - Gestor comenta a solução",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idComentario', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"texto\": \"Funcionou aqui também. Vale reiniciar a impressora depois.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/comentarios",
+            "description": "RF17 e RF21 (o autor da solução é notificado)."
+          }
+        },
+        {
+          "name": "RF18 - Gestor diz que a solução ajudou",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('1 voto', () => pm.expect(pm.response.json().totalAjudou).to.eql(1));"] } } ],
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"ajudou\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/avaliacao",
+            "description": "RF18. Votar de novo troca o voto."
+          }
+        },
+        {
+          "name": "RF22 - Relatório em PDF",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('é um PDF', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/relatorios/problemas.pdf?de=2026-01-01&ate=2026-12-31",
+            "description": "RF22. No Postman, use \"Save Response > Save to a file\" para abrir o PDF."
+          }
+        },
+        {
+          "name": "Login do colaborador",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailColaborador}}\",\n  \"senha\": \"{{senhaTeste}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": ""
+          }
+        },
+        {
+          "name": "RF21 - Notificações do colaborador",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('2 não lidas', () => pm.expect(pm.response.json().naoLidas).to.eql(2));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notificacoes",
+            "description": "RF21. Esperado: aviso de validação e de comentário."
+          }
+        },
+        {
+          "name": "RF21 - Marcar todas como lidas",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] } } ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/notificacoes/lidas",
+            "description": ""
+          }
+        },
+        {
+          "name": "RF18 - Autor não avalia a própria solução",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('403', () => pm.response.to.have.status(403));"] } } ],
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"ajudou\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/avaliacao",
+            "description": "Regra: o autor não vota na própria solução."
+          }
+        },
+        {
+          "name": "RF24 - Marcar como favorito",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] } } ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/favorito",
+            "description": "RF24."
+          }
+        },
+        {
+          "name": "RF24 - Busca só nos favoritos",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('o favorito aparece', () => pm.expect(pm.response.json().map(p => p.id)).to.include(Number(pm.collectionVariables.get('idProblema'))));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/busca?somenteFavoritos=true",
+            "description": "RF24."
+          }
+        },
+        {
+          "name": "RF24 - Desmarcar favorito",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] } } ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/favorito",
+            "description": "RF24."
+          }
+        },
+        {
+          "name": "RF16 - Anexar arquivo ao problema",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('idAnexo', pm.response.json().id);"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": { "mode": "formdata", "formdata": [ { "key": "arquivo", "type": "file", "src": [] } ] },
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/anexos",
+            "description": "RF16. Na aba Body (form-data), clique em \"Select Files\" no campo \"arquivo\" e escolha uma imagem ou PDF de até 5 MB."
+          }
+        },
+        {
+          "name": "RF16 - Baixar o anexo",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', () => pm.response.to.have.status(200));"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/anexos/{{idAnexo}}",
+            "description": "RF16."
+          }
+        },
+        {
+          "name": "RF14 - Pedir link de recuperação de senha",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('204 (mesma resposta exista o e-mail ou não)', () => pm.response.to.have.status(204));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{emailColaborador}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/recuperar-senha",
+            "description": "RF14. Não exige login. Sem servidor SMTP configurado, o link aparece no console da aplicação."
+          }
+        },
+        {
+          "name": "RF14 - Redefinir senha com link inválido",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('422', () => pm.response.to.have.status(422));"] } } ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"link-inventado\",\n  \"senha\": \"NovaSenha2026\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/redefinir-senha",
+            "description": "RF14. Para o teste de sucesso, troque o token pelo código que aparece no link do console."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Referência (todos os endpoints)",
+      "description": "Uma requisição para cada endpoint da API. Os ids usam as variáveis preenchidas pelas pastas anteriores.",
+      "item": [
+        {
+          "name": "Token CSRF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/csrf",
+            "description": "O script da coleção já faz isso sozinho antes de cada POST/PUT/PATCH/DELETE."
+          }
+        },
+        {
+          "name": "Quem está logado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/eu",
+            "description": "RF01."
+          }
+        },
+        {
+          "name": "Sair",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "RF01."
+          }
+        },
+        {
+          "name": "Busca com filtros",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/busca?texto=impressora&categoriaId={{idCategoria}}&departamentoId={{idDepartamento}}&status=RESOLVIDO&de=2026-01-01&ate=2026-12-31&ordem=relevancia",
+            "description": "RF08, RF19."
+          }
+        },
+        {
+          "name": "Detalhes do problema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}",
+            "description": "RF20."
+          }
+        },
+        {
+          "name": "Editar problema",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Impressora do Postman não imprime (editado)\",\n  \"descricao\": \"Os documentos ficam parados na fila.\",\n  \"departamentoId\": {{idDepartamento}},\n  \"categoriaId\": {{idCategoria}},\n  \"palavrasChave\": [\"impressora\"]\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}",
+            "description": "RF15, RN06."
+          }
+        },
+        {
+          "name": "Alterar situação",
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ABERTO\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/status",
+            "description": "RF23."
+          }
+        },
+        {
+          "name": "Arquivar problema",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/problemas/{{idProblema}}/arquivar",
+            "description": "RF15, RN09 (nada é excluído)."
+          }
+        },
+        {
+          "name": "Editar causa",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Causa editada\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/causas/{{idCausa}}",
+            "description": "RF15."
+          }
+        },
+        {
+          "name": "Arquivar causa",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/causas/{{idCausa}}/arquivar",
+            "description": "RF15, RN09."
+          }
+        },
+        {
+          "name": "Editar solução",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Solução editada\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}",
+            "description": "RF15."
+          }
+        },
+        {
+          "name": "Arquivar solução",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/arquivar",
+            "description": "RF15, RN09."
+          }
+        },
+        {
+          "name": "Arquivar comentário",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/comentarios/{{idComentario}}/arquivar",
+            "description": "RF17, RN09."
+          }
+        },
+        {
+          "name": "Anexar arquivo à solução",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": { "mode": "formdata", "formdata": [ { "key": "arquivo", "type": "file", "src": [] } ] },
+            "url": "{{baseUrl}}/api/solucoes/{{idSolucao}}/anexos",
+            "description": "RF16 (form-data, campo \"arquivo\")."
+          }
+        },
+        {
+          "name": "Arquivar anexo",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/anexos/{{idAnexo}}/arquivar",
+            "description": "RF16, RN09."
+          }
+        },
+        {
+          "name": "Marcar notificação como lida",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/notificacoes/1/lida",
+            "description": "RF21."
+          }
+        },
+        {
+          "name": "Listar categorias (ordem da árvore)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias",
+            "description": "RF07."
+          }
+        },
+        {
+          "name": "Árvore de categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categorias/arvore",
+            "description": "RF07 - estrutura ArvoreCategorias."
+          }
+        },
+        {
+          "name": "Renomear/mover categoria",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Postman (renomeada)\",\n  \"idPai\": null\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/categorias/{{idCategoria}}",
+            "description": "RF07 (gestor)."
+          }
+        },
+        {
+          "name": "Listar departamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/departamentos",
+            "description": "RF03."
+          }
+        },
+        {
+          "name": "Editar departamento",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Suporte Postman (editado)\",\n  \"descricao\": \"\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/departamentos/{{idDepartamento}}",
+            "description": "RF03 (administrador)."
+          }
+        },
+        {
+          "name": "Painel de indicadores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/painel",
+            "description": "RF13 (gestor e administrador)."
+          }
+        },
+        {
+          "name": "Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios",
+            "description": "RF02 (administrador)."
+          }
+        },
+        {
+          "name": "Detalhar usuário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios/2",
+            "description": "RF02."
+          }
+        },
+        {
+          "name": "Editar usuário",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Nome editado\",\n  \"email\": \"editado@postman.com\",\n  \"perfil\": \"COLABORADOR\",\n  \"departamentoId\": {{idDepartamento}},\n  \"senha\": \"\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/usuarios/2",
+            "description": "RF02 (senha em branco = manter)."
+          }
+        },
+        {
+          "name": "Desativar usuário",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios/2/desativar",
+            "description": "RF02, RN01."
+          }
+        },
+        {
+          "name": "Reativar usuário",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios/2/reativar",
+            "description": "RF02."
+          }
+        },
+        {
+          "name": "Anonimizar usuário (LGPD)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/usuarios/2/anonimizar",
+            "description": "RNF02 - só para usuário desativado."
+          }
+        },
+        {
+          "name": "Histórico geral",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/historico?tabela=problema",
+            "description": "RF11 (administrador)."
+          }
+        }
+      ]
+    }
+  ]
+}

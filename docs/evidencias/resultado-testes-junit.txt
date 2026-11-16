@@ -1,0 +1,129 @@
+KnowFlow - Resultado dos testes automatizados (JUnit 5 + MockMvc)
+Executado em: 09/11/2026 18:18 com 'mvn test' (JDK 17, banco H2 em memória)
+Evidência da seção 5.4 do TCC.
+
+ApiIntegracaoTest                              17 testes  0 falhas  0 erros
+    [APROVADO] ct09ColaboradorNaoAcessaAAdministracao
+    [APROVADO] ct08GestorValidaSolucaoEProblemaFicaResolvido
+    [APROVADO] ct05AssociarCausaESolucaoAUmProblema
+    [APROVADO] rn09Rn10ArquivarTiraDaBuscaEFicaNoHistorico
+    [APROVADO] rnf09AdministradorCadastraUsuarioComSenhaForte
+    [APROVADO] ct02LoginComSenhaIncorreta
+    [APROVADO] rf19FiltroPorCategoriaIncluiAsSubcategorias
+    [APROVADO] ct03RegistrarProblemaEleApareceNaLista
+    [APROVADO] requisicaoSemTokenCsrfERecusada
+    [APROVADO] ct07CadastrarProblemaParecidoSugereOSemelhante
+    [APROVADO] ct01LoginComDadosValidos
+    [APROVADO] ct06BuscarPorPalavraChaveExistente
+    [APROVADO] rn07GestorDeOutroDepartamentoNaoValida
+    [APROVADO] rnf01SemLoginAApiResponde401EATelaVaiParaOLogin
+    [APROVADO] ct04RegistrarProblemaSemTituloMostraCampoObrigatorio
+    [APROVADO] rn06ColaboradorNaoEditaProblemaDeOutraPessoaMasOGestorDoDepartamentoSim
+    [APROVADO] rn01UsuarioDesativadoNaoEntra
+DesejaveisIntegracaoTest                       20 testes  0 falhas  0 erros
+    [APROVADO] rf18VotoMeAjudouETrocaDeVoto
+    [APROVADO] documentacaoDaApiDisponivel
+    [APROVADO] rf22ColaboradorNaoGeraRelatorio
+    [APROVADO] rf17ComentarioEmBrancoERecusado
+    [APROVADO] rf16Rn06ColaboradorNaoAnexaEmProblemaDeOutraPessoa
+    [APROVADO] rf16AnexarBaixarEArquivarImagem
+    [APROVADO] rf14LinkInvalidoERecusado
+    [APROVADO] rf17AutorArquivaOProprioComentarioEOutroColaboradorNao
+    [APROVADO] rf13PainelMostraAsSolucoesMaisUteis
+    [APROVADO] rf17ComentarSolucaoERf21NotificarOAutor
+    [APROVADO] rf14PedirRecuperacaoNaoExigeLoginENaoRevelaSeOEmailExiste
+    [APROVADO] rf24MarcarEDesmarcarFavoritoEFiltrarNaBusca
+    [APROVADO] rf21AutorENotificadoQuandoASolucaoEValidada
+    [APROVADO] rf16AnexarNaSolucao
+    [APROVADO] rf16TipoDeArquivoNaoPermitidoERecusado
+    [APROVADO] rf18AutorNaoAvaliaAPropriaSolucao
+    [APROVADO] administradorInicialComDepartamentoAcentuadoCorretamente
+    [APROVADO] rf22PeriodoInvalidoTemMensagemClara
+    [APROVADO] rf22GestorGeraORelatorioEmPdf
+    [APROVADO] rf24AdministradorTambemUsaFavoritos
+estrutura.ArvoreCategoriasTest                  8 testes  0 falhas  0 erros
+    [APROVADO] subarvoreIncluiACategoriaETodasAsDescendentes
+    [APROVADO] detectaCicloAoMoverParaDentroDaPropriaSubarvore
+    [APROVADO] arvoreVazia
+    [APROVADO] montaAsRaizesEmOrdemAlfabetica
+    [APROVADO] caminhoVaiDaRaizAteACategoria
+    [APROVADO] paiInexistenteViraRaiz
+    [APROVADO] percursoEmPreOrdemSegueAOrdemDoMenuComNiveis
+    [APROVADO] identificaFolhasEFilhos
+estrutura.IndiceBuscaHashTest                  12 testes  0 falhas  0 erros
+    [APROVADO] termoRaroValeMaisQueTermoComum
+    [APROVADO] ignoraOProblemaInformado
+    [APROVADO] reindexarSubstituiOsTermosAntigos
+    [APROVADO] problemaComMaisTermosEmComumVemPrimeiro
+    [APROVADO] consultaVaziaNaoRetornaNada
+    [APROVADO] semelhancaParcialQuandoSoParteDosTermosAparece
+    [APROVADO] respeitaOLimite
+    [APROVADO] pesoMaiorNoTituloAumentaARelevancia
+    [APROVADO] semelhancaE100QuandoTodosOsTermosDaConsultaAparecem
+    [APROVADO] informaOsTermosEmComum
+    [APROVADO] encontraSomenteProblemasComTermosEmComum
+    [APROVADO] removerTiraOProblemaEOsTermosQueSoEleTinha
+estrutura.NormalizadorTextoTest                 7 testes  0 falhas  0 erros
+    [APROVADO] descartaStopwordsEPalavrasDeUmaLetra
+    [APROVADO] textoVazioOuNuloGeraListaVazia
+    [APROVADO] naoReduzPalavrasTerminadasEmUsOuSs
+    [APROVADO] consultaEIndiceGeramOMesmoTermoParaVariacoes
+    [APROVADO] reduzPluraisAoSingular
+    [APROVADO] juntaPalavrasComHifen
+    [APROVADO] removeAcentosEMaiusculas
+service.CategoriaServiceTest                    5 testes  0 falhas  0 erros
+    [APROVADO] impedeNomeRepetidoNoMesmoNivel
+    [APROVADO] impedeCicloNaHierarquia
+    [APROVADO] somenteGestorGerenciaCategorias
+    [APROVADO] cadastraSubcategoriaComCaminhoCompleto
+    [APROVADO] moverCategoriaAvisaABuscaParaReindexar
+service.PermissoesTest                          6 testes  0 falhas  0 erros
+    [APROVADO] rn06ColaboradorSoEditaOQueCriou
+    [APROVADO] exigirPerfilLancaAcessoNegado
+    [APROVADO] rn06GestorEditaOsRegistrosDoSeuDepartamento
+    [APROVADO] rn06GestorTambemEditaOQueEleMesmoCriouEmOutroDepartamento
+    [APROVADO] rn07ValidaSomenteOGestorDoDepartamentoDoProblemaOuOAdministrador
+    [APROVADO] colaboradorEGestorRegistramAdministradorNao
+service.PoliticaSenhaTest                       8 testes  0 falhas  0 erros
+    [APROVADO] aceitaSenhaComOitoCaracteresLetrasENumeros
+    [APROVADO] recusaSenhaSemLetrasOuSemNumeros(String)[1]
+    [APROVADO] recusaSenhaSemLetrasOuSemNumeros(String)[2]
+    [APROVADO] recusaSenhaCurta(String)[1]
+    [APROVADO] recusaSenhaCurta(String)[2]
+    [APROVADO] recusaSenhaCurta(String)[3]
+    [APROVADO] recusaSenhaCurta(String)[4]
+    [APROVADO] recusaSenhaAcimaDoLimiteDoBcrypt
+service.ProblemaServiceTest                     7 testes  0 falhas  0 erros
+    [APROVADO] administradorNaoRegistraProblemas
+    [APROVADO] rn06ColaboradorNaoEditaProblemaDeOutraPessoa
+    [APROVADO] rf23AlterarSituacaoGeraHistorico
+    [APROVADO] registrarUsaOUsuarioLogadoComoAutorEComecaAberto
+    [APROVADO] rf07PalavrasChaveSaoNormalizadasESemRepeticao
+    [APROVADO] rn09ArquivarTiraDaBuscaMasNaoExclui
+    [APROVADO] problemaArquivadoNaoPodeSerEditado
+service.RecuperacaoSenhaServiceTest             5 testes  0 falhas  0 erros
+    [APROVADO] linkExpiradoOuJaUsadoERecusado
+    [APROVADO] emailInexistenteOuUsuarioDesativadoNaoRecebeNada
+    [APROVADO] redefinirTrocaASenhaEInvalidaOLink
+    [APROVADO] enviaUmLinkEGuardaApenasOHashDoCodigo
+    [APROVADO] rnf09NovaSenhaFracaERecusada
+service.SolucaoServiceTest                      7 testes  0 falhas  0 erros
+    [APROVADO] rn09ArquivarSolucaoNaoExcluiDoBanco
+    [APROVADO] rn08ValidarSolucaoMarcaOProblemaComoResolvido
+    [APROVADO] naoValidaDuasVezes
+    [APROVADO] rn07ColaboradorNaoValida
+    [APROVADO] rn07GestorDeOutroDepartamentoNaoValida
+    [APROVADO] rn10RegistrarSolucaoGeraHistoricoEReindexa
+    [APROVADO] rn05NaoRegistraSolucaoEmProblemaArquivado
+service.UsuarioServiceTest                      9 testes  0 falhas  0 erros
+    [APROVADO] lgpdNaoAnonimizaUsuarioAtivo
+    [APROVADO] somenteAdministradorGerenciaUsuarios
+    [APROVADO] naoDesativaOProprioUsuario
+    [APROVADO] desativarNaoExcluiOUsuario
+    [APROVADO] naoRebaixaOUnicoAdministradorAtivo
+    [APROVADO] lgpdAnonimizarApagaNomeEEmailDeUsuarioDesativado
+    [APROVADO] rnf09SenhaFracaERecusada
+    [APROVADO] rn02EmailRepetidoERecusado
+    [APROVADO] cadastraComEmailMinusculoESenhaComHash
+
+TOTAL: 111 testes, 0 falhas
